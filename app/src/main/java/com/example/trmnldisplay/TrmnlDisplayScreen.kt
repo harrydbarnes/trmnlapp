@@ -107,6 +107,8 @@ fun TrmnlDisplayScreen(
                      error = "Error: ${response.code} - ${response.message}"
                 }
 
+            } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 error = "Failed to fetch: ${e.message}"
                 // Retry after 1 minute if failed
