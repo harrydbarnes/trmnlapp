@@ -20,7 +20,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 class TrmnlDreamService : DreamService(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
 
     private val lifecycleRegistry = LifecycleRegistry(this)
-    private val viewModelStore = ViewModelStore()
+    override val viewModelStore = ViewModelStore()
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
 
     override val lifecycle: Lifecycle
@@ -73,8 +73,6 @@ class TrmnlDreamService : DreamService(), LifecycleOwner, ViewModelStoreOwner, S
         lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         viewModelStore.clear()
     }
-
-    override fun getViewModelStore(): ViewModelStore = viewModelStore
 }
 
 // Helper interface to combine lifecycle interfaces needed for Compose
