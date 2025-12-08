@@ -2,6 +2,7 @@ package com.example.trmnldisplay
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
@@ -23,10 +24,8 @@ class SettingsScreenTest {
             )
         }
 
-        // CircularProgressIndicator doesn't have default text, but we can check if it exists or check that text fields are absent.
-        // Checking absence of text fields
-        composeTestRule.onNodeWithText("API Key").assertDoesNotExist()
-        composeTestRule.onNodeWithText("MAC Address").assertDoesNotExist()
+        // Assert that the loading indicator is displayed using its test tag.
+        composeTestRule.onNodeWithTag("loadingIndicator").assertIsDisplayed()
     }
 
     @Test

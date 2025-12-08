@@ -31,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
@@ -48,6 +49,7 @@ class SettingsActivity : ComponentActivity() {
             MaterialTheme {
                 val context = LocalContext.current
                 val repository = remember { SettingsRepository(context) }
+                val scope = rememberCoroutineScope()
 
                 val uiState by produceState<SettingsUiState>(initialValue = SettingsUiState.Loading) {
                     combine(repository.apiKey, repository.macAddress) { key, mac ->
@@ -55,28 +57,18 @@ class SettingsActivity : ComponentActivity() {
                     }.collect { value = it }
                 }
 
-                SettingsScreenWrapper(uiState, repository)
+                SettingsScreen(
+                    state = uiState,
+                    onSave = { key, mac ->
+                        scope.launch {
+                            repository.saveApiKey(key)
+                            repository.saveMacAddress(mac)
+                        }
+                    }
+                )
             }
         }
     }
-}
-
-@Composable
-fun SettingsScreenWrapper(
-    state: SettingsUiState,
-    repository: SettingsRepository
-) {
-    val scope = rememberCoroutineScope()
-
-    SettingsScreen(
-        state = state,
-        onSave = { key, mac ->
-            scope.launch {
-                repository.saveApiKey(key)
-                repository.saveMacAddress(mac)
-            }
-        }
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -98,7 +90,7 @@ fun SettingsScreen(
                         .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(modifier = Modifier.testTag("loadingIndicator"))
                 }
             }
             is SettingsUiState.Loaded -> {
