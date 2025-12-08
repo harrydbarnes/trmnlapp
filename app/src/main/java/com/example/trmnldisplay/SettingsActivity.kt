@@ -51,10 +51,10 @@ class SettingsActivity : ComponentActivity() {
                 val repository = remember { SettingsRepository(context) }
                 val scope = rememberCoroutineScope()
 
-                val uiState by produceState<SettingsUiState>(initialValue = SettingsUiState.Loading) {
-                    combine(repository.apiKey, repository.macAddress) { key, mac ->
+                val uiState by produceState<SettingsUiState>(initialValue = SettingsUiState.Loading, repository) {
+                    value = combine(repository.apiKey, repository.macAddress) { key, mac ->
                         SettingsUiState.Loaded(key ?: "", mac ?: "")
-                    }.collect { value = it }
+                    }.first()
                 }
 
                 SettingsScreen(
