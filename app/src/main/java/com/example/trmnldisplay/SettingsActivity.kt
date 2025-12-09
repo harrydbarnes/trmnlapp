@@ -52,9 +52,9 @@ class SettingsActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
 
                 val uiState by produceState<SettingsUiState>(initialValue = SettingsUiState.Loading, repository) {
-                    value = combine(repository.apiKey, repository.macAddress) { key, mac ->
+                    combine(repository.apiKey, repository.macAddress) { key, mac ->
                         SettingsUiState.Loaded(key ?: "", mac ?: "")
-                    }.first()
+                    }.collect { value = it }
                 }
 
                 SettingsScreen(
