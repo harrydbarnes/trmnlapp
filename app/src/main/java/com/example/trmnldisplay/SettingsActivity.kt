@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -33,7 +34,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
@@ -51,11 +51,11 @@ class SettingsActivity : ComponentActivity() {
                 val repository = remember { SettingsRepository(context) }
                 val scope = rememberCoroutineScope()
 
-                val uiState by produceState<SettingsUiState>(initialValue = SettingsUiState.Loading, repository) {
-                    value = combine(repository.apiKey, repository.macAddress) { key, mac ->
+                val uiState by remember(repository) {
+                    combine(repository.apiKey, repository.macAddress) { key, mac ->
                         SettingsUiState.Loaded(key ?: "", mac ?: "")
-                    }.first()
-                }
+                    }
+                }.collectAsState(initial = SettingsUiState.Loading)
 
                 SettingsScreen(
                     state = uiState,
