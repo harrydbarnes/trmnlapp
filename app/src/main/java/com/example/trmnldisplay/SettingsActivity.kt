@@ -37,12 +37,42 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
+/**
+ * Represents the UI state for the settings screen.
+ */
 sealed interface SettingsUiState {
+    /**
+     * State representing that the settings are currently being loaded.
+     */
     data object Loading : SettingsUiState
+
+    /**
+     * State representing that the settings have been loaded.
+     *
+     * @property apiKey The saved API Key for the TRMNL service.
+     * @property macAddress The saved MAC Address of the TRMNL device.
+     */
     data class Loaded(val apiKey: String, val macAddress: String) : SettingsUiState
 }
 
+/**
+ * Activity for configuring the application settings.
+ *
+ * Allows the user to view and edit the TRMNL API Key and MAC Address, and provides
+ * a link to the external TRMNL configuration website.
+ */
 class SettingsActivity : ComponentActivity() {
+    /**
+     * Called when the activity is starting.
+     *
+     * Initializes the activity and sets up the Compose UI for the settings screen.
+     * It observes the API Key and MAC Address from [SettingsRepository] and passes
+     * the current state to the [SettingsScreen].
+     *
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down then
+     * this Bundle contains the data it most recently supplied in onSaveInstanceState(Bundle).
+     * Note: Otherwise it is null.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -71,6 +101,15 @@ class SettingsActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Composable function that renders the settings screen.
+ *
+ * Displays a loading indicator or the settings content based on the provided [state].
+ *
+ * @param state The current state of the settings UI (Loading or Loaded).
+ * @param onSave A callback function to be invoked when the user saves the settings.
+ *               It takes the new API Key and MAC Address as arguments.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
@@ -105,6 +144,18 @@ fun SettingsScreen(
     }
 }
 
+/**
+ * Composable function that renders the content of the settings screen when loaded.
+ *
+ * Provides input fields for the API Key and MAC Address, and a button to save these settings.
+ * Also includes a button to open the external TRMNL configuration website.
+ *
+ * @param initialApiKey The initial value for the API Key input field.
+ * @param initialMacAddress The initial value for the MAC Address input field.
+ * @param onSave A callback function to be invoked when the user clicks the Save button.
+ *               It takes the updated API Key and MAC Address as arguments.
+ * @param modifier The modifier to apply to this layout.
+ */
 @Composable
 fun SettingsContent(
     initialApiKey: String,

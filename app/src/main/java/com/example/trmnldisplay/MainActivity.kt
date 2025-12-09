@@ -21,7 +21,24 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
+/**
+ * The main entry point of the application.
+ *
+ * This activity configures the window for immersive mode (hiding system bars), keeps the screen on,
+ * and sets up the main UI content which includes the TRMNL display screen and a settings button.
+ */
 class MainActivity : ComponentActivity() {
+    /**
+     * Called when the activity is starting.
+     *
+     * This method initializes the activity, sets up the window flags for full-screen and screen-on behavior,
+     * and sets the Jetpack Compose content. It retrieves user settings (API key and MAC address) via
+     * [SettingsRepository] and passes them to the [TrmnlDisplayScreen].
+     *
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down then
+     * this Bundle contains the data it most recently supplied in onSaveInstanceState(Bundle).
+     * Note: Otherwise it is null.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

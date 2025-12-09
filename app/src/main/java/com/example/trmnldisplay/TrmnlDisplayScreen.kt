@@ -30,6 +30,17 @@ import okhttp3.Request
 import org.json.JSONObject
 import java.io.IOException
 
+/**
+ * A Composable that displays the TRMNL screen content.
+ *
+ * This function handles fetching the image URL from the TRMNL API using the provided
+ * API Key and MAC Address. It refreshes the image periodically based on the
+ * refresh rate returned by the API.
+ *
+ * @param apiKey The API Key used for authentication with the TRMNL API.
+ * @param macAddress The MAC Address used to identify the device.
+ * @param modifier The modifier to apply to the container Box.
+ */
 @Composable
 fun TrmnlDisplayScreen(
     apiKey: String?,
