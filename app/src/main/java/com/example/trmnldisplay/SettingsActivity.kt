@@ -53,7 +53,7 @@ class SettingsActivity : ComponentActivity() {
 
                 val uiState by remember(repository) {
                     combine(repository.apiKey, repository.macAddress) { key, mac ->
-                        SettingsUiState.Loaded(key ?: "", mac ?: "") as SettingsUiState
+                        SettingsUiState.Loaded(key ?: "", mac ?: "")
                     }
                 }.collectAsState(initial = SettingsUiState.Loading)
 
