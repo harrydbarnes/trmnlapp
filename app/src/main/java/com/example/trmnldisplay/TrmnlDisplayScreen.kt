@@ -31,6 +31,9 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
+private const val CONNECT_TIMEOUT_SECONDS = 15L
+private const val READ_TIMEOUT_SECONDS = 30L
+
 /**
  * A Composable that displays the TRMNL screen content.
  *
@@ -57,8 +60,8 @@ fun TrmnlDisplayScreen(
     // We use 'remember' so it persists across recompositions, and set timeouts to avoid hanging.
     val client = remember {
         OkHttpClient.Builder()
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+            .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .build()
     }
 
