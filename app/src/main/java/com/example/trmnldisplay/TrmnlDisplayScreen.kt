@@ -29,6 +29,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 /**
  * A Composable that displays the TRMNL screen content.
@@ -52,15 +53,20 @@ fun TrmnlDisplayScreen(
     // Default refresh to 15 mins if not specified
     var refreshInterval by remember { mutableStateOf(15 * 60 * 1000L) }
 
+    // Optimization: Create OkHttpClient once to reuse connection pool and resources.
+    // We use 'remember' so it persists across recompositions, and set timeouts to avoid hanging.
+    val client = remember {
+        OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
+
     LaunchedEffect(apiKey, macAddress) {
         if (apiKey.isNullOrEmpty() || macAddress.isNullOrEmpty()) {
             error = "Please configure API Key and MAC Address in Settings"
             return@LaunchedEffect
         }
-
-        // Optimization: Create OkHttpClient once to reuse connection pool and resources.
-        // Creating a new client in every loop iteration is expensive and inefficient.
-        val client = OkHttpClient()
 
         while (true) {
             try {
