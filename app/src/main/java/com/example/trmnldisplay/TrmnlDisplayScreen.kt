@@ -58,10 +58,13 @@ fun TrmnlDisplayScreen(
             return@LaunchedEffect
         }
 
+        // Optimization: Create OkHttpClient once to reuse connection pool and resources.
+        // Creating a new client in every loop iteration is expensive and inefficient.
+        val client = OkHttpClient()
+
         while (true) {
             try {
                 // API Endpoint from docs: https://usetrmnl.com/api/display
-                val client = OkHttpClient()
                 val url = "https://usetrmnl.com/api/display"
 
                 val requestBuilder = Request.Builder()
