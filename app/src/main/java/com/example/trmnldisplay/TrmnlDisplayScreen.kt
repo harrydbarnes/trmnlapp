@@ -34,6 +34,13 @@ import java.util.concurrent.TimeUnit
 private const val CONNECT_TIMEOUT_SECONDS = 15L
 private const val READ_TIMEOUT_SECONDS = 30L
 
+// Optimization: Create OkHttpClient as a top-level singleton to share resources
+// across the entire application lifecycle (Activity and DreamService).
+private val appOkHttpClient = OkHttpClient.Builder()
+    .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+    .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+    .build()
+
 /**
  * A Composable that displays the TRMNL screen content.
  *
@@ -55,15 +62,6 @@ fun TrmnlDisplayScreen(
     var error by remember { mutableStateOf<String?>(null) }
     // Default refresh to 15 mins if not specified
     var refreshInterval by remember { mutableStateOf(15 * 60 * 1000L) }
-
-    // Optimization: Create OkHttpClient once to reuse connection pool and resources.
-    // We use 'remember' so it persists across recompositions, and set timeouts to avoid hanging.
-    val client = remember {
-        OkHttpClient.Builder()
-            .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .build()
-    }
 
     LaunchedEffect(apiKey, macAddress) {
         if (apiKey.isNullOrEmpty() || macAddress.isNullOrEmpty()) {
@@ -95,7 +93,7 @@ fun TrmnlDisplayScreen(
                 val request = requestBuilder.build()
 
                 val response = withContext(Dispatchers.IO) {
-                    client.newCall(request).execute()
+                    appOkHttpClient.newCall(request).execute()
                 }
 
                 if (response.isSuccessful) {
