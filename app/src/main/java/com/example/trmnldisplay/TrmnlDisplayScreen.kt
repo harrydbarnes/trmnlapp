@@ -96,36 +96,38 @@ fun TrmnlDisplayScreen(
                     appOkHttpClient.newCall(request).execute()
                 }
 
-                if (response.isSuccessful) {
-                    val responseBody = response.body?.string()
-                    val json = JSONObject(responseBody ?: "{}")
+                response.use {
+                    if (it.isSuccessful) {
+                        val responseBody = it.body?.string()
+                        val json = JSONObject(responseBody ?: "{}")
 
-                    if (json.has("image_url")) {
-                        imageUrl = json.getString("image_url")
+                        if (json.has("image_url")) {
+                            imageUrl = json.getString("image_url")
 
-                        // Check for refresh rate
-                        // Docs example: "refresh_rate"=>"1800" (seconds?) or minutes?
-                        // "reset_duration" was also mentioned.
-                        // Let's check both.
+                            // Check for refresh rate
+                            // Docs example: "refresh_rate"=>"1800" (seconds?) or minutes?
+                            // "reset_duration" was also mentioned.
+                            // Let's check both.
 
-                        val refreshRateSeconds = json.optLong("refresh_rate", 0)
-                        val resetDurationMinutes = json.optLong("reset_duration", 0)
+                            val refreshRateSeconds = json.optLong("refresh_rate", 0)
+                            val resetDurationMinutes = json.optLong("reset_duration", 0)
 
-                        if (refreshRateSeconds > 0) {
-                            refreshInterval = refreshRateSeconds * 1000L
-                        } else if (resetDurationMinutes > 0) {
-                            refreshInterval = resetDurationMinutes * 60 * 1000L
+                            if (refreshRateSeconds > 0) {
+                                refreshInterval = refreshRateSeconds * 1000L
+                            } else if (resetDurationMinutes > 0) {
+                                refreshInterval = resetDurationMinutes * 60 * 1000L
+                            } else {
+                                // Fallback to 15 minutes
+                                refreshInterval = 15 * 60 * 1000L
+                            }
+
+                            error = null
                         } else {
-                            // Fallback to 15 minutes
-                            refreshInterval = 15 * 60 * 1000L
+                             error = "Invalid response: No image_url found"
                         }
-
-                        error = null
                     } else {
-                         error = "Invalid response: No image_url found"
+                         error = "Error: ${it.code} - ${it.message}"
                     }
-                } else {
-                     error = "Error: ${response.code} - ${response.message}"
                 }
 
             } catch (e: kotlin.coroutines.cancellation.CancellationException) {
