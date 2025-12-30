@@ -61,6 +61,8 @@ class TrmnlViewModel(
                          refreshInterval = seconds * 1000L
                      } else if (minutes > 0) {
                          refreshInterval = minutes * 60 * 1000L
+                     } else {
+                         refreshInterval = 15 * 60 * 1000L // Fallback to default
                      }
                 } else {
                     _uiState.value = TrmnlUiState.Error("Invalid response: No image_url found")
