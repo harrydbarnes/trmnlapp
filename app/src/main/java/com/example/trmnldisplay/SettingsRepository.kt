@@ -3,7 +3,9 @@ package com.example.trmnldisplay
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -35,6 +37,21 @@ class SettingsRepository(private val context: Context) {
          * Key for storing the MAC Address.
          */
         val MAC_ADDRESS = stringPreferencesKey("mac_address")
+
+        /**
+         * Key for storing the custom mode flag.
+         */
+        val IS_CUSTOM_MODE = booleanPreferencesKey("is_custom_mode")
+
+        /**
+         * Key for storing the custom image URL.
+         */
+        val CUSTOM_IMAGE_URL = stringPreferencesKey("custom_image_url")
+
+        /**
+         * Key for storing the custom refresh rate in seconds.
+         */
+        val CUSTOM_REFRESH_RATE = longPreferencesKey("custom_refresh_rate")
     }
 
     /**
@@ -48,6 +65,24 @@ class SettingsRepository(private val context: Context) {
      */
     val macAddress: Flow<String?> = context.dataStore.data
         .map { preferences -> preferences[MAC_ADDRESS] }
+
+    /**
+     * A Flow emitting whether custom mode is enabled.
+     */
+    val isCustomMode: Flow<Boolean> = context.dataStore.data
+        .map { preferences -> preferences[IS_CUSTOM_MODE] ?: false }
+
+    /**
+     * A Flow emitting the custom image URL, or null if not set.
+     */
+    val customImageUrl: Flow<String?> = context.dataStore.data
+        .map { preferences -> preferences[CUSTOM_IMAGE_URL] }
+
+    /**
+     * A Flow emitting the custom refresh rate in seconds. Defaults to 900 (15 minutes).
+     */
+    val customRefreshRate: Flow<Long> = context.dataStore.data
+        .map { preferences -> preferences[CUSTOM_REFRESH_RATE] ?: 900L }
 
     /**
      * Saves the provided API Key to the DataStore.
@@ -68,6 +103,21 @@ class SettingsRepository(private val context: Context) {
     suspend fun saveMacAddress(macAddress: String) {
         context.dataStore.edit { preferences ->
             preferences[MAC_ADDRESS] = macAddress
+        }
+    }
+
+    /**
+     * Saves the custom settings to the DataStore.
+     *
+     * @param isCustom Whether custom mode is enabled.
+     * @param url The custom image URL.
+     * @param refreshRate The custom refresh rate in seconds.
+     */
+    suspend fun saveCustomSettings(isCustom: Boolean, url: String, refreshRate: Long) {
+        context.dataStore.edit { preferences ->
+            preferences[IS_CUSTOM_MODE] = isCustom
+            preferences[CUSTOM_IMAGE_URL] = url
+            preferences[CUSTOM_REFRESH_RATE] = refreshRate
         }
     }
 }
