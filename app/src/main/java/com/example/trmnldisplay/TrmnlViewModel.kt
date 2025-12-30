@@ -68,7 +68,7 @@ class TrmnlViewModel(
             } catch (e: kotlin.coroutines.cancellation.CancellationException) {
                 throw e
             } catch (e: Exception) {
-                // Log?
+                android.util.Log.e("TrmnlViewModel", "Failed to fetch display data", e)
                 _uiState.value = TrmnlUiState.Error("Failed to fetch: ${e.message}")
                 refreshInterval = 60 * 1000L // Retry in 1 min
             }
