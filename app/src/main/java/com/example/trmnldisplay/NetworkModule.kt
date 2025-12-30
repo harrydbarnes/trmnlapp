@@ -26,14 +26,12 @@ val appOkHttpClient: OkHttpClient = OkHttpClient.Builder()
  */
 interface TrmnlApi {
     @GET("api/display")
-    @Headers(
-        "battery-voltage: 5.0",
-        "wifi-rssi: -50",
-        "fw-version: 1.0.0"
-    )
     suspend fun getDisplay(
         @Header("access-token") apiKey: String,
-        @Header("id") macAddress: String
+        @Header("id") macAddress: String,
+        @Header("battery-voltage") batteryVoltage: String = "5.0",
+        @Header("wifi-rssi") wifiRssi: String = "-50",
+        @Header("fw-version") fwVersion: String = "1.0.0"
     ): TrmnlResponse
 }
 
