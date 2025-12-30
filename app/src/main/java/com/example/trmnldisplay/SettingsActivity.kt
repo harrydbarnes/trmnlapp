@@ -265,7 +265,7 @@ fun SettingsContent(
 
         Button(
             onClick = {
-                val refreshRate = customRefreshRateInput.toLongOrNull() ?: 900L
+                val refreshRate = customRefreshRateInput.toLongOrNull()?.takeIf { it > 0 } ?: 900L
                 onSave(apiKeyInput, macAddressInput, isCustomMode, customImageUrlInput, refreshRate)
             },
             modifier = Modifier.fillMaxWidth()
