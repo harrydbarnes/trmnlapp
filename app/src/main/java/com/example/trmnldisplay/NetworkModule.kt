@@ -6,7 +6,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Header
-import retrofit2.http.Headers
 import java.util.concurrent.TimeUnit
 
 private const val CONNECT_TIMEOUT_SECONDS = 15L
@@ -26,14 +25,12 @@ val appOkHttpClient: OkHttpClient = OkHttpClient.Builder()
  */
 interface TrmnlApi {
     @GET("api/display")
-    @Headers(
-        "battery-voltage: 5.0",
-        "wifi-rssi: -50",
-        "fw-version: 1.0.0"
-    )
     suspend fun getDisplay(
         @Header("access-token") apiKey: String,
-        @Header("id") macAddress: String
+        @Header("id") macAddress: String,
+        @Header("battery-voltage") batteryVoltage: Float = 5.0f,
+        @Header("wifi-rssi") wifiRssi: Int = -50,
+        @Header("fw-version") fwVersion: String = "1.0.0"
     ): TrmnlResponse
 }
 
