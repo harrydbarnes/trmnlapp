@@ -6,7 +6,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 import retrofit2.http.Header
-import retrofit2.http.Headers
 import java.util.concurrent.TimeUnit
 
 private const val CONNECT_TIMEOUT_SECONDS = 15L
@@ -29,8 +28,8 @@ interface TrmnlApi {
     suspend fun getDisplay(
         @Header("access-token") apiKey: String,
         @Header("id") macAddress: String,
-        @Header("battery-voltage") batteryVoltage: Float = 5.0f,
-        @Header("wifi-rssi") wifiRssi: Int = -50,
+        @Header("battery-voltage") batteryVoltage: String = "5.0",
+        @Header("wifi-rssi") wifiRssi: String = "-50",
         @Header("fw-version") fwVersion: String = "1.0.0"
     ): TrmnlResponse
 }
