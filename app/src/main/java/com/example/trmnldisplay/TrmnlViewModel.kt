@@ -28,15 +28,52 @@ class TrmnlViewModel(
     init {
         viewModelScope.launch {
             // Use collectLatest to cancel the previous polling loop if settings change
-            combine(repository.apiKey, repository.macAddress) { key, mac ->
-                Pair(key, mac)
-            }.collectLatest { (apiKey, macAddress) ->
-                if (apiKey.isNullOrEmpty() || macAddress.isNullOrEmpty()) {
-                    _uiState.value = TrmnlUiState.Error("Please configure API Key and MAC Address in Settings")
+            combine(
+                repository.apiKey,
+                repository.macAddress,
+                repository.isCustomMode,
+                repository.customImageUrl,
+                repository.customRefreshRate
+            ) { key, mac, isCustom, url, rate ->
+                SettingsData(key, mac, isCustom, url, rate)
+            }.collectLatest { settings ->
+                if (settings.isCustomMode) {
+                    if (settings.customImageUrl.isNullOrEmpty()) {
+                        _uiState.value = TrmnlUiState.Error("Please configure Image URL in Settings")
+                    } else {
+                        pollCustomDisplay(settings.customImageUrl, settings.customRefreshRate)
+                    }
                 } else {
-                    pollDisplay(apiKey, macAddress)
+                    if (settings.apiKey.isNullOrEmpty() || settings.macAddress.isNullOrEmpty()) {
+                        _uiState.value = TrmnlUiState.Error("Please configure API Key and MAC Address in Settings")
+                    } else {
+                        pollDisplay(settings.apiKey, settings.macAddress)
+                    }
                 }
             }
+        }
+    }
+
+    private suspend fun pollCustomDisplay(url: String, refreshRateSeconds: Long) {
+        _uiState.value = TrmnlUiState.Loading
+        val refreshInterval = refreshRateSeconds * 1000L
+
+        while (true) {
+            try {
+                // Append timestamp to prevent caching
+                val timestampedUrl = if (url.contains("?")) {
+                    "$url&t=${System.currentTimeMillis()}"
+                } else {
+                    "$url?t=${System.currentTimeMillis()}"
+                }
+                _uiState.value = TrmnlUiState.Success(timestampedUrl)
+            } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                android.util.Log.e("TrmnlViewModel", "Failed to display custom image", e)
+                _uiState.value = TrmnlUiState.Error("Failed to display: ${e.message}")
+            }
+            delay(refreshInterval)
         }
     }
 
@@ -77,6 +114,14 @@ class TrmnlViewModel(
         }
     }
 }
+
+data class SettingsData(
+    val apiKey: String?,
+    val macAddress: String?,
+    val isCustomMode: Boolean,
+    val customImageUrl: String?,
+    val customRefreshRate: Long
+)
 
 class TrmnlViewModelFactory(
     private val repository: SettingsRepository

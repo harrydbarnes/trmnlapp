@@ -8,24 +8,26 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -33,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -51,8 +54,17 @@ sealed interface SettingsUiState {
      *
      * @property apiKey The saved API Key for the TRMNL service.
      * @property macAddress The saved MAC Address of the TRMNL device.
+     * @property isCustomMode Whether custom mode is enabled.
+     * @property customImageUrl The custom image URL.
+     * @property customRefreshRate The custom refresh rate in seconds.
      */
-    data class Loaded(val apiKey: String, val macAddress: String) : SettingsUiState
+    data class Loaded(
+        val apiKey: String,
+        val macAddress: String,
+        val isCustomMode: Boolean,
+        val customImageUrl: String,
+        val customRefreshRate: Long
+    ) : SettingsUiState
 }
 
 /**
@@ -82,17 +94,30 @@ class SettingsActivity : ComponentActivity() {
                 val scope = rememberCoroutineScope()
 
                 val uiState by remember(repository) {
-                    combine(repository.apiKey, repository.macAddress) { key, mac ->
-                        SettingsUiState.Loaded(key ?: "", mac ?: "")
+                    combine(
+                        repository.apiKey,
+                        repository.macAddress,
+                        repository.isCustomMode,
+                        repository.customImageUrl,
+                        repository.customRefreshRate
+                    ) { key, mac, isCustom, url, rate ->
+                        SettingsUiState.Loaded(
+                            key ?: "",
+                            mac ?: "",
+                            isCustom,
+                            url ?: "",
+                            rate
+                        )
                     }
                 }.collectAsState(initial = SettingsUiState.Loading)
 
                 SettingsScreen(
                     state = uiState,
-                    onSave = { key, mac ->
+                    onSave = { key, mac, isCustom, url, rate ->
                         scope.launch {
                             repository.saveApiKey(key)
                             repository.saveMacAddress(mac)
+                            repository.saveCustomSettings(isCustom, url, rate)
                         }
                     }
                 )
@@ -114,7 +139,7 @@ class SettingsActivity : ComponentActivity() {
 @Composable
 fun SettingsScreen(
     state: SettingsUiState,
-    onSave: (String, String) -> Unit
+    onSave: (String, String, Boolean, String, Long) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -136,6 +161,9 @@ fun SettingsScreen(
                 SettingsContent(
                     initialApiKey = state.apiKey,
                     initialMacAddress = state.macAddress,
+                    initialIsCustomMode = state.isCustomMode,
+                    initialCustomImageUrl = state.customImageUrl,
+                    initialCustomRefreshRate = state.customRefreshRate,
                     onSave = onSave,
                     modifier = Modifier.padding(padding)
                 )
@@ -160,12 +188,18 @@ fun SettingsScreen(
 fun SettingsContent(
     initialApiKey: String,
     initialMacAddress: String,
-    onSave: (String, String) -> Unit,
+    initialIsCustomMode: Boolean,
+    initialCustomImageUrl: String,
+    initialCustomRefreshRate: Long,
+    onSave: (String, String, Boolean, String, Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     var apiKeyInput by remember(initialApiKey) { mutableStateOf(initialApiKey) }
     var macAddressInput by remember(initialMacAddress) { mutableStateOf(initialMacAddress) }
+    var isCustomMode by remember(initialIsCustomMode) { mutableStateOf(initialIsCustomMode) }
+    var customImageUrlInput by remember(initialCustomImageUrl) { mutableStateOf(initialCustomImageUrl) }
+    var customRefreshRateInput by remember(initialCustomRefreshRate) { mutableStateOf(initialCustomRefreshRate.toString()) }
 
     Column(
         modifier = modifier
@@ -173,27 +207,66 @@ fun SettingsContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Text("Connection Mode", style = MaterialTheme.typography.titleLarge)
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = if (isCustomMode) "Custom URL" else "Official Cloud",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Switch(
+                checked = isCustomMode,
+                onCheckedChange = { isCustomMode = it }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Text("Configuration", style = MaterialTheme.typography.titleLarge)
 
-        OutlinedTextField(
-            value = apiKeyInput,
-            onValueChange = { apiKeyInput = it },
-            label = { Text("API Key") },
-            modifier = Modifier.fillMaxWidth(),
-            supportingText = { Text("Found in your TRMNL account settings") }
-        )
+        if (isCustomMode) {
+            OutlinedTextField(
+                value = customImageUrlInput,
+                onValueChange = { customImageUrlInput = it },
+                label = { Text("Image URL") },
+                modifier = Modifier.fillMaxWidth(),
+                supportingText = { Text("e.g., http://192.168.1.50/image.png") }
+            )
 
-        OutlinedTextField(
-            value = macAddressInput,
-            onValueChange = { macAddressInput = it },
-            label = { Text("MAC Address") },
-            modifier = Modifier.fillMaxWidth(),
-            supportingText = { Text("MAC Address of the device to emulate") }
-        )
+            OutlinedTextField(
+                value = customRefreshRateInput,
+                onValueChange = { if (it.all { char -> char.isDigit() }) customRefreshRateInput = it },
+                label = { Text("Refresh Rate (seconds)") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                supportingText = { Text("Interval to refresh the image") }
+            )
+        } else {
+            OutlinedTextField(
+                value = apiKeyInput,
+                onValueChange = { apiKeyInput = it },
+                label = { Text("API Key") },
+                modifier = Modifier.fillMaxWidth(),
+                supportingText = { Text("Found in your TRMNL account settings") }
+            )
+
+            OutlinedTextField(
+                value = macAddressInput,
+                onValueChange = { macAddressInput = it },
+                label = { Text("MAC Address") },
+                modifier = Modifier.fillMaxWidth(),
+                supportingText = { Text("MAC Address of the device to emulate") }
+            )
+        }
 
         Button(
             onClick = {
-                onSave(apiKeyInput, macAddressInput)
+                val refreshRate = customRefreshRateInput.toLongOrNull() ?: 900L
+                onSave(apiKeyInput, macAddressInput, isCustomMode, customImageUrlInput, refreshRate)
             },
             modifier = Modifier.fillMaxWidth()
         ) {
