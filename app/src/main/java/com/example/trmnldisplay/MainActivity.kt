@@ -13,8 +13,6 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -55,8 +53,10 @@ class MainActivity : ComponentActivity() {
             MaterialTheme {
                 val context = LocalContext.current
                 val repository = remember { SettingsRepository(context) }
-                val apiKey by repository.apiKey.collectAsState(initial = null)
-                val macAddress by repository.macAddress.collectAsState(initial = null)
+                // Create ViewModel with factory
+                val viewModel: TrmnlViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                    factory = TrmnlViewModelFactory(repository)
+                )
 
                 Scaffold(
                     floatingActionButton = {
@@ -69,8 +69,7 @@ class MainActivity : ComponentActivity() {
                 ) { padding ->
                     Box(modifier = Modifier.padding(padding).fillMaxSize()) {
                         TrmnlDisplayScreen(
-                            apiKey = apiKey,
-                            macAddress = macAddress,
+                            viewModel = viewModel,
                             modifier = Modifier.fillMaxSize()
                         )
                     }

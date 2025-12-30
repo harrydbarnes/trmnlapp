@@ -1,9 +1,6 @@
 package com.example.trmnldisplay
 
 import android.service.dreams.DreamService
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.Lifecycle
@@ -76,13 +73,12 @@ class TrmnlDreamService : DreamService(), LifecycleOwner, ViewModelStoreOwner, S
             setViewTreeSavedStateRegistryOwner(this@TrmnlDreamService)
 
             setContent {
-                // Observe flows directly in Compose, avoiding runBlocking
-                val apiKey by settingsRepository.apiKey.collectAsState(initial = null)
-                val macAddress by settingsRepository.macAddress.collectAsState(initial = null)
+                val viewModel: TrmnlViewModel = androidx.lifecycle.viewmodel.compose.viewModel(
+                    factory = TrmnlViewModelFactory(settingsRepository)
+                )
 
                 TrmnlDisplayScreen(
-                    apiKey = apiKey,
-                    macAddress = macAddress
+                    viewModel = viewModel
                 )
             }
         }
