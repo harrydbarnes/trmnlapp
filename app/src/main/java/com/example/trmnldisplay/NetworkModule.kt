@@ -28,8 +28,8 @@ interface TrmnlApi {
     suspend fun getDisplay(
         @Header("access-token") apiKey: String,
         @Header("id") macAddress: String,
-        @Header("battery-voltage") batteryVoltage: String = "5.0",
-        @Header("wifi-rssi") wifiRssi: String = "-50",
+        @Header("battery-voltage") batteryVoltage: Float = 5.0f,
+        @Header("wifi-rssi") wifiRssi: Int = -50,
         @Header("fw-version") fwVersion: String = "1.0.0"
     ): TrmnlResponse
 }
