@@ -61,11 +61,11 @@ class TrmnlViewModel(
         while (true) {
             try {
                 // Append timestamp to prevent caching
-                val timestampedUrl = if (url.contains("?")) {
-                    "$url&t=${System.currentTimeMillis()}"
-                } else {
-                    "$url?t=${System.currentTimeMillis()}"
-                }
+                val timestampedUrl = android.net.Uri.parse(url)
+                    .buildUpon()
+                    .appendQueryParameter("t", System.currentTimeMillis().toString())
+                    .build()
+                    .toString()
                 _uiState.value = TrmnlUiState.Success(timestampedUrl)
             } catch (e: kotlin.coroutines.cancellation.CancellationException) {
                 throw e
