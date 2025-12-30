@@ -31,16 +31,6 @@ import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-private const val CONNECT_TIMEOUT_SECONDS = 15L
-private const val READ_TIMEOUT_SECONDS = 30L
-
-// Optimization: Create OkHttpClient as a top-level singleton to share resources
-// across the entire application lifecycle (Activity and DreamService).
-private val appOkHttpClient = OkHttpClient.Builder()
-    .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-    .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-    .build()
-
 /**
  * A Composable that displays the TRMNL screen content.
  *
@@ -50,12 +40,14 @@ private val appOkHttpClient = OkHttpClient.Builder()
  *
  * @param apiKey The API Key used for authentication with the TRMNL API.
  * @param macAddress The MAC Address used to identify the device.
+ * @param client The OkHttpClient to use for network requests.
  * @param modifier The modifier to apply to the container Box.
  */
 @Composable
 fun TrmnlDisplayScreen(
     apiKey: String?,
     macAddress: String?,
+    client: OkHttpClient,
     modifier: Modifier = Modifier
 ) {
     var imageUrl by remember { mutableStateOf<String?>(null) }
@@ -93,7 +85,7 @@ fun TrmnlDisplayScreen(
                 val request = requestBuilder.build()
 
                 val response = withContext(Dispatchers.IO) {
-                    appOkHttpClient.newCall(request).execute()
+                    client.newCall(request).execute()
                 }
 
                 response.use {

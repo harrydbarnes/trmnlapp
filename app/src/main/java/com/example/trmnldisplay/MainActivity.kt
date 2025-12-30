@@ -71,6 +71,7 @@ class MainActivity : ComponentActivity() {
                         TrmnlDisplayScreen(
                             apiKey = apiKey,
                             macAddress = macAddress,
+                            client = appOkHttpClient,
                             modifier = Modifier.fillMaxSize()
                         )
                     }

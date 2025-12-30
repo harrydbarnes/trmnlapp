@@ -82,7 +82,8 @@ class TrmnlDreamService : DreamService(), LifecycleOwner, ViewModelStoreOwner, S
 
                 TrmnlDisplayScreen(
                     apiKey = apiKey,
-                    macAddress = macAddress
+                    macAddress = macAddress,
+                    client = appOkHttpClient
                 )
             }
         }
